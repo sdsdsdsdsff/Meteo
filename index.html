@@ -6,8 +6,8 @@
 <title>Метеостанция • Дербент</title>
 <style>
   :root {
-    --bg: #07090e;
-    --card: #111622;
+    --bg: #06080d;
+    --card: rgba(17, 22, 34, 0.85);
     --border: rgba(255, 255, 255, 0.08);
     --cyan: #00f0ff;
     --temp: #ffd700;
@@ -18,27 +18,44 @@
   * { box-sizing: border-box; }
 
   body {
-    background: radial-gradient(circle at top, #121b2e 0%, var(--bg) 65%);
+    background: radial-gradient(circle at 50% 0%, #142238 0%, var(--bg) 70%);
     color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     margin: 0;
-    padding: 20px 14px;
+    padding: 20px 14px 40px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
+  .container {
+    width: 100%;
+    max-width: 440px;
+  }
+
   header {
     text-align: center;
-    margin-bottom: 24px;
-    width: 100%;
-    max-width: 420px;
+    margin-bottom: 20px;
+  }
+
+  .city-badge {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    padding: 4px 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
   }
 
   h1 {
-    margin: 0 0 10px;
-    font-size: 24px;
+    margin: 0 0 12px;
+    font-size: 26px;
+    font-weight: 800;
     letter-spacing: 2px;
     text-transform: uppercase;
     background: linear-gradient(90deg, #ffffff, var(--cyan));
@@ -50,12 +67,13 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border);
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 13px;
     color: var(--text-muted);
+    backdrop-filter: blur(8px);
   }
 
   .dot {
@@ -70,6 +88,7 @@
   .dot.online {
     background: #22c55e;
     box-shadow: 0 0 10px #22c55e;
+    animation: pulse 2s infinite;
   }
 
   .dot.err {
@@ -77,28 +96,37 @@
     box-shadow: 0 0 10px #ef4444;
   }
 
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  }
+
   .card {
     width: 100%;
-    max-width: 420px;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 22px;
-    margin-bottom: 16px;
+    border-radius: 20px;
+    padding: 20px 22px;
+    margin-bottom: 14px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    backdrop-filter: blur(10px);
     transition: transform 0.2s ease, border-color 0.2s ease;
   }
 
   .card:hover {
     transform: translateY(-2px);
-    border-color: rgba(0, 240, 255, 0.3);
+    border-color: rgba(0, 240, 255, 0.25);
+  }
+
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .label {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-muted);
     margin-bottom: 6px;
     font-weight: 500;
@@ -126,51 +154,106 @@
     font-weight: 600;
   }
 
+  .minmax {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 14px;
+  }
+
+  .minmax span b {
+    color: #e2e8f0;
+    font-weight: 600;
+  }
+
   .icon-box {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 30px;
   }
 
-  .noise-card { display: block; }
+  /* Карточка комфорта */
+  .comfort-card {
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(17, 22, 34, 0.9));
+    border-color: rgba(0, 240, 255, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+  }
 
+  .comfort-icon { font-size: 26px; }
+  .comfort-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .comfort-sub { font-size: 12px; color: var(--text-muted); }
+
+  /* Шум */
   .noise-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
-  .noise-title { font-size: 16px; font-weight: 600; }
+  .noise-title { font-size: 15px; font-weight: 600; }
   .noise-val { font-size: 18px; font-weight: 700; color: var(--hum); }
 
   .noise-bar {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     gap: 8px;
-    height: 52px;
+    height: 48px;
     align-items: center;
   }
 
   .block {
-    height: 44px;
+    height: 40px;
     background: #1c2436;
     border-radius: 6px;
     transition: all 0.25s ease;
   }
 
-  .block.on { height: 52px; }
+  .block.on { height: 48px; }
   .green.on  { background: #22c55e; box-shadow: 0 0 14px rgba(34, 197, 94, 0.6); }
   .orange.on { background: #f59e0b; box-shadow: 0 0 14px rgba(245, 158, 11, 0.6); }
   .red.on    { background: #ef4444; box-shadow: 0 0 14px rgba(239, 68, 68, 0.6); }
 
+  /* График */
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .chart-title { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+
+  .legend {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  canvas {
+    width: 100%;
+    height: 120px;
+    display: block;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+  }
+
   .footer-info {
-    margin-top: 14px;
+    margin-top: 12px;
     display: flex;
     justify-content: space-between;
     font-size: 12px;
@@ -180,45 +263,79 @@
 </head>
 <body>
 
-<header>
-  <h1>Метеостанция</h1>
-  <div class="status-pill">
-    <span class="dot" id="dot"></span>
-    <span id="status">Загрузка модуля связи...</span>
-  </div>
-</header>
+<div class="container">
+  <header>
+    <div class="city-badge">📍 Дербент • Live</div>
+    <h1>Метеостанция</h1>
+    <div class="status-pill">
+      <span class="dot" id="dot"></span>
+      <span id="status">Загрузка модуля связи...</span>
+    </div>
+  </header>
 
-<div class="card">
-  <div>
-    <div class="label">Температура воздуха</div>
-    <div class="value-row">
-      <span class="value" id="temp">--.-</span>
-      <span class="unit">°C</span>
+  <div class="card comfort-card">
+    <div class="comfort-icon" id="comfort-emoji">✨</div>
+    <div>
+      <div class="comfort-title" id="comfort-title">Оценка микроклимата</div>
+      <div class="comfort-sub" id="comfort-sub">Ожидание первых показаний с датчиков...</div>
     </div>
   </div>
-  <div class="icon-box">🌡️</div>
-</div>
 
-<div class="card">
-  <div>
-    <div class="label">Относительная влажность</div>
-    <div class="value-row">
-      <span class="value hum" id="hum">--.-</span>
-      <span class="unit">%</span>
+  <div class="card">
+    <div class="metric-row">
+      <div>
+        <div class="label">Температура воздуха</div>
+        <div class="value-row">
+          <span class="value" id="temp">--.-</span>
+          <span class="unit">°C</span>
+        </div>
+        <div class="minmax">
+          <span>Мин: <b id="t-min">--.-</b>°</span>
+          <span>Макс: <b id="t-max">--.-</b>°</span>
+        </div>
+      </div>
+      <div class="icon-box">🌡️</div>
     </div>
   </div>
-  <div class="icon-box">💧</div>
-</div>
 
-<div class="card noise-card">
-  <div class="noise-header">
-    <span class="noise-title">Уровень шума</span>
-    <span class="noise-val" id="noise">0%</span>
+  <div class="card">
+    <div class="metric-row">
+      <div>
+        <div class="label">Относительная влажность</div>
+        <div class="value-row">
+          <span class="value hum" id="hum">--.-</span>
+          <span class="unit">%</span>
+        </div>
+        <div class="minmax">
+          <span>Мин: <b id="h-min">--.-</b>%</span>
+          <span>Макс: <b id="h-max">--.-</b>%</span>
+        </div>
+      </div>
+      <div class="icon-box">💧</div>
+    </div>
   </div>
-  <div class="noise-bar" id="bar"></div>
-  <div class="footer-info">
-    <span id="noise-desc">Тихо</span>
-    <span id="updated">Ожидание данных...</span>
+
+  <div class="card">
+    <div class="noise-header">
+      <span class="noise-title">Уровень шума</span>
+      <span class="noise-val" id="noise">0%</span>
+    </div>
+    <div class="noise-bar" id="bar"></div>
+    <div class="footer-info">
+      <span id="noise-desc">Тихо</span>
+      <span id="updated">Ожидание данных...</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chart-header">
+      <span class="chart-title">Динамика в реальном времени</span>
+      <div class="legend">
+        <span><i class="leg-dot" style="background:#ffd700"></i>Темп.</span>
+        <span><i class="leg-dot" style="background:#4ade80"></i>Влажн.</span>
+      </div>
+    </div>
+    <canvas id="chart" width="400" height="120"></canvas>
   </div>
 </div>
 
@@ -235,99 +352,175 @@ for (let i = 0; i < 9; i++) {
 const statusEl = document.getElementById('status');
 const dotEl = document.getElementById('dot');
 
+let tMin = Infinity, tMax = -Infinity;
+let hMin = Infinity, hMax = -Infinity;
+const historyT = [];
+const historyH = [];
+const MAX_POINTS = 25;
+
 function setError(msg) {
   dotEl.className = 'dot err';
   statusEl.textContent = msg;
 }
 
-function startMqtt() {
-  if (typeof mqtt === 'undefined') {
-    setError('Модуль MQTT не загрузился');
-    return;
+function updateComfort(t, h, n) {
+  const emoji = document.getElementById('comfort-emoji');
+  const title = document.getElementById('comfort-title');
+  const sub = document.getElementById('comfort-sub');
+
+  // Простой расчёт ощущаемой температуры
+  const feels = t + 0.33 * (h / 100 * 6.105 * Math.exp(17.27 * t / (237.7 + t))) - 4.0;
+  let advice = 'Ощущается как ' + feels.toFixed(1) + ' °C. ';
+
+  if (t > 26 && h > 60) {
+    emoji.textContent = '🥵';
+    title.textContent = 'Жарко и влажно';
+    advice += 'Рекомендуется проветрить помещение.';
+  } else if (t > 26) {
+    emoji.textContent = '☀️';
+    title.textContent = 'Тепло и сухо';
+    advice += 'Хорошо бы включить увлажнитель или открыть окно.';
+  } else if (t < 18) {
+    emoji.textContent = '❄️';
+    title.textContent = 'Прохладно';
+    advice += 'Температура ниже комфортной.';
+  } else if (h < 35) {
+    emoji.textContent = '🌵';
+    title.textContent = 'Сухой воздух';
+    advice += 'Температура в норме, но влажность низкая.';
+  } else {
+    emoji.textContent = '🌿';
+    title.textContent = 'Идеальный микроклимат';
+    advice += 'Температура и влажность в зоне комфорта.';
   }
 
-  statusEl.textContent = 'Подключение к broker.emqx.io...';
-  const TOPIC = 'meteo/derbent/Mega-Ingener';
-  const BROKER = 'wss:' + '//broker.emqx.io:8084/mqtt';
-
-  const client = mqtt.connect(BROKER, {
-    clientId: 'web_meteo_' + Math.random().toString(16).substr(2, 8),
-    connectTimeout: 8000
-  });
-
-  client.on('connect', () => {
-    dotEl.className = 'dot online';
-    statusEl.textContent = 'Онлайн • Ожидание пакета (до 10 сек)';
-    client.subscribe(TOPIC);
-  });
-
-  client.on('message', (topic, message) => {
-    try {
-      const d = JSON.parse(message.toString());
-
-      if (d.temp !== undefined && !isNaN(d.temp)) {
-        document.getElementById('temp').textContent = Number(d.temp).toFixed(1);
-      }
-      if (d.hum !== undefined && !isNaN(d.hum)) {
-        document.getElementById('hum').textContent = Number(d.hum).toFixed(1);
-      }
-
-      const n = Number(d.noise) || 0;
-      const noiseEl = document.getElementById('noise');
-      noiseEl.textContent = n + '%';
-
-      const filled = Math.round((n / 100) * 9);
-      let cls = 'green';
-      let desc = 'Тихо';
-      noiseEl.style.color = '#4ade80';
-
-      if (n > 70) {
-        cls = 'red';
-        desc = 'Громко';
-        noiseEl.style.color = '#ef4444';
-      } else if (n > 40) {
-        cls = 'orange';
-        desc = 'Умеренно';
-        noiseEl.style.color = '#f59e0b';
-      }
-
-      document.getElementById('noise-desc').textContent = desc;
-
-      for (let i = 0; i < 9; i++) {
-        blocks[i].className = i < filled ? 'block ' + cls + ' on' : 'block';
-      }
-
-      const now = new Date().toLocaleTimeString('ru-RU');
-      dotEl.className = 'dot online';
-      statusEl.textContent = 'Станция в сети';
-      document.getElementById('updated').textContent = 'Обновлено в ' + now;
-    } catch (e) {
-      setError('Ошибка формата данных');
-    }
-  });
-
-  client.on('error', (err) => {
-    setError('Ошибка сети: ' + (err.message || 'нет доступа к брокеру'));
-  });
-
-  client.on('offline', () => {
-    dotEl.className = 'dot';
-    statusEl.textContent = 'Переподключение к облаку...';
-  });
+  if (n > 70) advice += ' В комнате довольно шумно.';
+  sub.textContent = advice;
 }
 
-// Динамическая загрузка библиотеки без длинных ссылок в HTML
+function drawChart() {
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+ctx.clearRect(0, 0, w, h);
+// Сетка
+ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+ctx.lineWidth = 1;
+for (let y = 24; y < h; y += 30) {
+ctx.beginPath();
+ctx.moveTo(0, y);
+ctx.lineTo(w, y);
+ctx.stroke();
+}
+if (historyT.length < 2) return;
+function plotLine(arr, color, minVal, maxVal) {
+const range = Math.max(maxVal - minVal, 1);
+ctx.strokeStyle = color;
+ctx.lineWidth = 2.5;
+ctx.lineJoin = 'round';
+ctx.beginPath();
+arr.forEach((val, i) => {
+const x = (i / (MAX_POINTS - 1)) * (w - 20) + 10;
+const y = h - 14 - ((val - minVal) / range) * (h - 28);
+if (i === 0) ctx.moveTo(x, y);
+else ctx.lineTo(x, y);
+});
+ctx.stroke();
+// Последняя точка
+const lastIdx = arr.length - 1;
+const lx = (lastIdx / (MAX_POINTS - 1)) * (w - 20) + 10;
+const ly = h - 14 - ((arr[lastIdx] - minVal) / range) * (h - 28);
+ctx.fillStyle = color;
+ctx.beginPath();
+ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+ctx.fill();
+}
+plotLine(historyH, '#4ade80', 0, 100);
+plotLine(historyT, '#ffd700', Math.min(...historyT) - 2, Math.max(...historyT) + 2);
+}
+function startMqtt() {
+if (typeof mqtt === 'undefined') {
+setError('Модуль MQTT не загрузился');
+return;
+}
+statusEl.textContent = 'Подключение к облаку...';
+const TOPIC = 'meteo/derbent/Mega-Ingener';
+const BROKER = 'wss:' + '//broker.emqx.io:8084/mqtt';
+const client = mqtt.connect(BROKER, {
+clientId: 'web_meteo_' + Math.random().toString(16).substr(2, 8),
+connectTimeout: 8000
+});
+client.on('connect', () => {
+dotEl.className = 'dot online';
+statusEl.textContent = 'Онлайн • Ожидание пакета';
+client.subscribe(TOPIC);
+});
+client.on('message', (topic, message) => {
+try {
+const d = JSON.parse(message.toString());
+let curT = null, curH = null;
+if (d.temp !== undefined && !isNaN(d.temp)) {
+curT = Number(d.temp);
+document.getElementById('temp').textContent = curT.toFixed(1);
+if (curT < tMin) { tMin = curT; document.getElementById('t-min').textContent = tMin.toFixed(1); }
+if (curT > tMax) { tMax = curT; document.getElementById('t-max').textContent = tMax.toFixed(1); }
+historyT.push(curT);
+if (historyT.length > MAX_POINTS) historyT.shift();
+}
+if (d.hum !== undefined && !isNaN(d.hum)) {
+curH = Number(d.hum);
+document.getElementById('hum').textContent = curH.toFixed(1);
+if (curH < hMin) { hMin = curH; document.getElementById('h-min').textContent = hMin.toFixed(1); }
+if (curH > hMax) { hMax = curH; document.getElementById('h-max').textContent = hMax.toFixed(1); }
+historyH.push(curH);
+if (historyH.length > MAX_POINTS) historyH.shift();
+}
+const n = Number(d.noise) || 0;
+const noiseEl = document.getElementById('noise');
+noiseEl.textContent = n + '%';
+const filled = Math.round((n / 100) * 9);
+let cls = 'green';
+let desc = 'Тихо';
+noiseEl.style.color = '#4ade80';
+if (n > 70) {
+cls = 'red';
+desc = 'Громко';
+noiseEl.style.color = '#ef4444';
+} else if (n > 40) {
+cls = 'orange';
+desc = 'Умеренно';
+noiseEl.style.color = '#f59e0b';
+}
+document.getElementById('noise-desc').textContent = desc;
+for (let i = 0; i < 9; i++) {
+blocks[i].className = i < filled ? 'block ' + cls + ' on' : 'block';
+}
+if (curT !== null && curH !== null) {
+updateComfort(curT, curH, n);
+}
+drawChart();
+const now = new Date().toLocaleTimeString('ru-RU');
+dotEl.className = 'dot online';
+statusEl.textContent = 'Станция в сети';
+document.getElementById('updated').textContent = 'Обновлено в ' + now;
+} catch (e) {
+setError('Ошибка формата данных');
+}
+});
+client.on('offline', () => {
+dotEl.className = 'dot';
+statusEl.textContent = 'Переподключение...';
+});
+}
 const s = document.createElement('script');
-s.src = 'https:' + '//://unpkg.com';
+s.src = 'https:' + '//unpkg.com';
 s.onload = startMqtt;
 s.onerror = () => {
-  const s2 = document.createElement('script');
-  s2.src = 'https:' + '//cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';
-  s2.onload = startMqtt;
-  s2.onerror = () => setError('Блокировка загрузки CDN в сети');
-  document.head.appendChild(s2);
+const s2 = document.createElement('script');
+s2.src = 'https:' + '//cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';
+s2.onload = startMqtt;
+s2.onerror = () => setError('Ошибка загрузки CDN');
+document.head.appendChild(s2);
 };
 document.head.appendChild(s);
-</script>
-</body>
-</html>
