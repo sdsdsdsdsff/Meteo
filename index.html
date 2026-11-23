@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Метеостанция</title>
+<style>
+  body { background:#050505; color:#fff; font-family:system-ui,sans-serif;
+         margin:0; padding:10px; display:flex; flex-direction:column; align-items:center; }
+  h1 { margin:16px 0 20px; text-transform:uppercase; letter-spacing:2px;
+       border-bottom:3px solid #0ff; padding-bottom:8px; font-size:22px; }
+  .card { width:100%; max-width:400px; background:#111; border-radius:12px;
+          padding:20px; box-shadow:0 8px 24px rgba(0,0,0,.5); margin-bottom:20px;
+          display:flex; justify-content:space-between; align-items:center; gap:16px; }
+  .label { font-size:14px; opacity:.7; margin-bottom:4px; }
+  .value { font-size:38px; font-weight:bold; color:#FFD700; }
+  .value.hum { color:#4DA64D; }
+  .unit { font-size:22px; opacity:.8; }
+  .icon { font-size:34px; }
+  .noise-bar { display:flex; gap:6px; margin-top:14px; justify-content:center; }
+  .block { width:9px; height:48px; background:#222; border-radius:4px;
+           transition:background .3s, box-shadow .3s, transform .3s; }
+  .block.on { transform:scaleY(1.1); }
+  .green.on  { background:#4DA64D; box-shadow:0 0 10px #4DA64D; }
+  .orange.on { background:#FFA500; box-shadow:0 0 10px #FFA500; }
+  .red.on    { background:#FF4444; box-shadow:0 0 10px #FF4444; }
+  .status { margin-top:8px; text-align:center; font-size:14px; color:rgba(255,255,255,.7); }
+  .live { color:#4DA64D; font-weight:bold; }
+</style>
+</head>
+<body>
+<h1>Метеостанция</h1>
+
+<div class="card">
+  <div>
+    <div class="label">Температура</div>
+    <span class="value" id="temp">--.-</span><span class="unit">°C</span>
+  </div>
+  <div class="icon">🌡️</div>
+</div>
+
+<div class="card">
+  <div>
+    <div class="label">Влажность</div>
+    <span class="value hum" id="hum">--.-</span><span class="unit">%</span>
+  </div>
+  <div class="icon">💧</div>
+</div>
+
+<div class="card" style="display:block;">
+  <div style="display:flex; justify-content:space-between;">
+    <span style="font-weight:bold;">Уровень шума</span>
+    <span id="noise" style="font-weight:bold;">0%</span>
+  </div>
+  <div class="noise-bar" id="bar"></div>
+  <div class="status" id="status">подключаюсь к метеостанции...</div>
+</div>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+// ТОТ ЖЕ код канала, что и в скетче!
+const TOPIC = 'meteo/derbent/pomesti-svoe-slovo';
+
+const bar = document.getElementById('bar');
+const blocks = [];
+for (let i = 0; i < 9; i++) {
+  const b = document.createElement('div');
+  b.className = 'block green';
+  bar.appendChild(b);
+  blocks.push(b);
+}
+
+let lastData = 0;
+
+function applyData(d) {
+  document.getElementById('temp').textContent = d.temp.toFixed(1);
+  document.getElementById('hum').textContent = d.hum.toFixed(1);
+  const n = d.noise;
+  document.getElementById('noise').textContent = n + '%';
+  const filled = Math.floor(n / 100 * 9);
+  const cls = n > 70 ? 'red' : (n > 40 ? 'orange' : 'green');
+  for (let i = 0; i < 9; i++) {
+    blocks[i].className = 'block ' + (i < filled ? cls + ' on' : 'green');
+  }
+  lastData = Date.now();
+  document.getElementById('status').innerHTML = '<span class="live">● на связи</span>';
+}
+
+const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+
+client.on('connect', () => {
+  client.subscribe(TOPIC);
+  document.getElementById('status').textContent = 'на связи, жду данные...';
+});
+
+client.on('message', (topic, payload) => {
+  try {
+    applyData(JSON.parse(payload.toString()));
+  } catch (e) {}
+});
+
+// Если данные пропали дольше 40 секунд — помечаем офлайн
+setInterval(() => {
+  if (lastData && Date.now() - lastData > 40000) {
+    document.getElementById('status').textContent = 'метеостанция не отвечает';
+  }
+}, 5000);
+</script>
+</body>
+</html>
