@@ -3,108 +3,305 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Метеостанция</title>
+<title>Метеостанция • Дербент</title>
+<script src="https://unpkg.com"></script>
 <style>
-  body { background:#050505; color:#fff; font-family:system-ui,sans-serif;
-         margin:0; padding:10px; display:flex; flex-direction:column; align-items:center; }
-  h1 { margin:16px 0 20px; text-transform:uppercase; letter-spacing:2px;
-       border-bottom:3px solid #0ff; padding-bottom:8px; font-size:22px; }
-  .card { width:100%; max-width:400px; background:#111; border-radius:12px;
-          padding:20px; box-shadow:0 8px 24px rgba(0,0,0,.5); margin-bottom:20px;
-          display:flex; justify-content:space-between; align-items:center; gap:16px; }
-  .label { font-size:14px; opacity:.7; margin-bottom:4px; }
-  .value { font-size:38px; font-weight:bold; color:#FFD700; }
-  .value.hum { color:#4DA64D; }
-  .unit { font-size:22px; opacity:.8; }
-  .icon { font-size:34px; }
-  .noise-bar { display:flex; gap:6px; margin-top:14px; justify-content:center; }
-  .block { width:9px; height:48px; background:#222; border-radius:4px;
-           transition:background .3s, box-shadow .3s, transform .3s; }
-  .block.on { transform:scaleY(1.1); }
-  .green.on  { background:#4DA64D; box-shadow:0 0 10px #4DA64D; }
-  .orange.on { background:#FFA500; box-shadow:0 0 10px #FFA500; }
-  .red.on    { background:#FF4444; box-shadow:0 0 10px #FF4444; }
-  .status { margin-top:8px; text-align:center; font-size:14px; color:rgba(255,255,255,.7); }
-  .live { color:#4DA64D; font-weight:bold; }
+  :root {
+    --bg: #07090e;
+    --card: #111622;
+    --border: rgba(255, 255, 255, 0.08);
+    --cyan: #00f0ff;
+    --temp: #ffd700;
+    --hum: #4ade80;
+    --text-muted: #8b9bb4;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: radial-gradient(circle at top, #121b2e 0%, var(--bg) 65%);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    margin: 0;
+    padding: 20px 14px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ffffff, var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+    transition: 0.3s;
+  }
+
+  .dot.online {
+    background: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 240, 255, 0.3);
+  }
+
+  .label {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .value {
+    font-size: 44px;
+    font-weight: 800;
+    color: var(--temp);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .value.hum { color: var(--hum); }
+
+  .unit {
+    font-size: 20px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+  }
+
+  .noise-card {
+    display: block;
+  }
+
+  .noise-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .noise-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .noise-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--hum);
+  }
+
+  .noise-bar {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 8px;
+    height: 52px;
+    align-items: center;
+  }
+
+  .block {
+    height: 44px;
+    background: #1c2436;
+    border-radius: 6px;
+    transition: all 0.25s ease;
+  }
+
+  .block.on {
+    height: 52px;
+  }
+
+  .green.on  { background: #22c55e; box-shadow: 0 0 14px rgba(34, 197, 94, 0.6); }
+  .orange.on { background: #f59e0b; box-shadow: 0 0 14px rgba(245, 158, 11, 0.6); }
+  .red.on    { background: #ef4444; box-shadow: 0 0 14px rgba(239, 68, 68, 0.6); }
+
+  .footer-info {
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
 </style>
 </head>
 <body>
-<h1>Метеостанция</h1>
+
+<header>
+  <h1>Метеостанция</h1>
+  <div class="status-pill">
+    <span class="dot" id="dot"></span>
+    <span id="status">Подключение к облаку...</span>
+  </div>
+</header>
 
 <div class="card">
   <div>
-    <div class="label">Температура</div>
-    <span class="value" id="temp">--.-</span><span class="unit">°C</span>
+    <div class="label">Температура воздуха</div>
+    <div class="value-row">
+      <span class="value" id="temp">--.-</span>
+      <span class="unit">°C</span>
+    </div>
   </div>
-  <div class="icon">🌡️</div>
+  <div class="icon-box">🌡️</div>
 </div>
 
 <div class="card">
   <div>
-    <div class="label">Влажность</div>
-    <span class="value hum" id="hum">--.-</span><span class="unit">%</span>
+    <div class="label">Относительная влажность</div>
+    <div class="value-row">
+      <span class="value hum" id="hum">--.-</span>
+      <span class="unit">%</span>
+    </div>
   </div>
-  <div class="icon">💧</div>
+  <div class="icon-box">💧</div>
 </div>
 
-<div class="card" style="display:block;">
-  <div style="display:flex; justify-content:space-between;">
-    <span style="font-weight:bold;">Уровень шума</span>
-    <span id="noise" style="font-weight:bold;">0%</span>
+<div class="card noise-card">
+  <div class="noise-header">
+    <span class="noise-title">Уровень шума</span>
+    <span class="noise-val" id="noise">0%</span>
   </div>
   <div class="noise-bar" id="bar"></div>
-  <div class="status" id="status">подключаюсь к метеостанции...</div>
+  <div class="footer-info">
+    <span id="noise-desc">Тихо</span>
+    <span id="updated">Ожидание данных...</span>
+  </div>
 </div>
 
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script>
-// ТОТ ЖЕ код канала, что и в скетче!
-const TOPIC = 'meteo/derbent/pomesti-svoe-slovo';
+const TOPIC = 'meteo/derbent/Mega-Ingener';
+const BROKER = 'wss://broker.emqx.io:8084/mqtt';
 
 const bar = document.getElementById('bar');
 const blocks = [];
 for (let i = 0; i < 9; i++) {
   const b = document.createElement('div');
-  b.className = 'block green';
+  b.className = 'block';
   bar.appendChild(b);
   blocks.push(b);
 }
 
-let lastData = 0;
-
-function applyData(d) {
-  document.getElementById('temp').textContent = d.temp.toFixed(1);
-  document.getElementById('hum').textContent = d.hum.toFixed(1);
-  const n = d.noise;
-  document.getElementById('noise').textContent = n + '%';
-  const filled = Math.floor(n / 100 * 9);
-  const cls = n > 70 ? 'red' : (n > 40 ? 'orange' : 'green');
-  for (let i = 0; i < 9; i++) {
-    blocks[i].className = 'block ' + (i < filled ? cls + ' on' : 'green');
-  }
-  lastData = Date.now();
-  document.getElementById('status').innerHTML = '<span class="live">● на связи</span>';
-}
-
-const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+const client = mqtt.connect(BROKER, {
+  clientId: 'web_meteo_' + Math.random().toString(16).substr(2, 8)
+});
 
 client.on('connect', () => {
+  document.getElementById('dot').classList.add('online');
+  document.getElementById('status').textContent = 'Онлайн • Ожидание пакета';
   client.subscribe(TOPIC);
-  document.getElementById('status').textContent = 'на связи, жду данные...';
 });
 
-client.on('message', (topic, payload) => {
+client.on('message', (topic, message) => {
   try {
-    applyData(JSON.parse(payload.toString()));
-  } catch (e) {}
+    const d = JSON.parse(message.toString());
+
+    if (d.temp !== undefined && !isNaN(d.temp)) {
+      document.getElementById('temp').textContent = Number(d.temp).toFixed(1);
+    }
+    if (d.hum !== undefined && !isNaN(d.hum)) {
+      document.getElementById('hum').textContent = Number(d.hum).toFixed(1);
+    }
+
+    const n = Number(d.noise) || 0;
+    const noiseEl = document.getElementById('noise');
+    noiseEl.textContent = n + '%';
+
+    const filled = Math.round((n / 100) * 9);
+    let cls = 'green';
+    let desc = 'Тихо';
+    noiseEl.style.color = '#4ade80';
+
+    if (n > 70) {
+      cls = 'red';
+      desc = 'Громко';
+      noiseEl.style.color = '#ef4444';
+    } else if (n > 40) {
+      cls = 'orange';
+      desc = 'Умеренно';
+      noiseEl.style.color = '#f59e0b';
+    }
+
+    document.getElementById('noise-desc').textContent = desc;
+
+    for (let i = 0; i < 9; i++) {
+      blocks[i].className = i < filled ? `block ${cls} on` : 'block';
+    }
+
+    const now = new Date().toLocaleTimeString('ru-RU');
+    document.getElementById('status').textContent = 'Станция в сети';
+    document.getElementById('updated').textContent = 'Обновлено в ' + now;
+  } catch (e) {
+    console.error('Ошибка разбора данных:', e);
+  }
 });
 
-// Если данные пропали дольше 40 секунд — помечаем офлайн
-setInterval(() => {
-  if (lastData && Date.now() - lastData > 40000) {
-    document.getElementById('status').textContent = 'метеостанция не отвечает';
-  }
-}, 5000);
+client.on('offline', () => {
+  document.getElementById('dot').classList.remove('online');
+  document.getElementById('status').textContent = 'Нет связи с брокером';
+});
 </script>
 </body>
 </html>
