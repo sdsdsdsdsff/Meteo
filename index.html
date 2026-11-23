@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Метеостанция • Дербент</title>
-<script src="https://jsdelivr.net"></script>
-
 <style>
   :root {
     --bg: #07090e;
@@ -74,6 +72,11 @@
     box-shadow: 0 0 10px #22c55e;
   }
 
+  .dot.err {
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+  }
+
   .card {
     width: 100%;
     max-width: 420px;
@@ -134,9 +137,7 @@
     font-size: 30px;
   }
 
-  .noise-card {
-    display: block;
-  }
+  .noise-card { display: block; }
 
   .noise-header {
     display: flex;
@@ -145,16 +146,8 @@
     margin-bottom: 16px;
   }
 
-  .noise-title {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  .noise-val {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--hum);
-  }
+  .noise-title { font-size: 16px; font-weight: 600; }
+  .noise-val { font-size: 18px; font-weight: 700; color: var(--hum); }
 
   .noise-bar {
     display: grid;
@@ -171,10 +164,7 @@
     transition: all 0.25s ease;
   }
 
-  .block.on {
-    height: 52px;
-  }
-
+  .block.on { height: 52px; }
   .green.on  { background: #22c55e; box-shadow: 0 0 14px rgba(34, 197, 94, 0.6); }
   .orange.on { background: #f59e0b; box-shadow: 0 0 14px rgba(245, 158, 11, 0.6); }
   .red.on    { background: #ef4444; box-shadow: 0 0 14px rgba(239, 68, 68, 0.6); }
@@ -194,7 +184,7 @@
   <h1>Метеостанция</h1>
   <div class="status-pill">
     <span class="dot" id="dot"></span>
-    <span id="status">Подключение к облаку...</span>
+    <span id="status">Загрузка модуля связи...</span>
   </div>
 </header>
 
@@ -233,9 +223,6 @@
 </div>
 
 <script>
-const TOPIC = 'meteo/derbent/Mega-Ingener';
-const BROKER = 'wss://broker.emqx.io:8084/mqtt';
-
 const bar = document.getElementById('bar');
 const blocks = [];
 for (let i = 0; i < 9; i++) {
@@ -245,64 +232,102 @@ for (let i = 0; i < 9; i++) {
   blocks.push(b);
 }
 
-const client = mqtt.connect(BROKER, {
-  clientId: 'web_meteo_' + Math.random().toString(16).substr(2, 8)
-});
+const statusEl = document.getElementById('status');
+const dotEl = document.getElementById('dot');
 
-client.on('connect', () => {
-  document.getElementById('dot').classList.add('online');
-  document.getElementById('status').textContent = 'Онлайн • Ожидание пакета';
-  client.subscribe(TOPIC);
-});
+function setError(msg) {
+  dotEl.className = 'dot err';
+  statusEl.textContent = msg;
+}
 
-client.on('message', (topic, message) => {
-  try {
-    const d = JSON.parse(message.toString());
-
-    if (d.temp !== undefined && !isNaN(d.temp)) {
-      document.getElementById('temp').textContent = Number(d.temp).toFixed(1);
-    }
-    if (d.hum !== undefined && !isNaN(d.hum)) {
-      document.getElementById('hum').textContent = Number(d.hum).toFixed(1);
-    }
-
-    const n = Number(d.noise) || 0;
-    const noiseEl = document.getElementById('noise');
-    noiseEl.textContent = n + '%';
-
-    const filled = Math.round((n / 100) * 9);
-    let cls = 'green';
-    let desc = 'Тихо';
-    noiseEl.style.color = '#4ade80';
-
-    if (n > 70) {
-      cls = 'red';
-      desc = 'Громко';
-      noiseEl.style.color = '#ef4444';
-    } else if (n > 40) {
-      cls = 'orange';
-      desc = 'Умеренно';
-      noiseEl.style.color = '#f59e0b';
-    }
-
-    document.getElementById('noise-desc').textContent = desc;
-
-    for (let i = 0; i < 9; i++) {
-      blocks[i].className = i < filled ? `block ${cls} on` : 'block';
-    }
-
-    const now = new Date().toLocaleTimeString('ru-RU');
-    document.getElementById('status').textContent = 'Станция в сети';
-    document.getElementById('updated').textContent = 'Обновлено в ' + now;
-  } catch (e) {
-    console.error('Ошибка разбора данных:', e);
+function startMqtt() {
+  if (typeof mqtt === 'undefined') {
+    setError('Модуль MQTT не загрузился');
+    return;
   }
-});
 
-client.on('offline', () => {
-  document.getElementById('dot').classList.remove('online');
-  document.getElementById('status').textContent = 'Нет связи с брокером';
-});
+  statusEl.textContent = 'Подключение к broker.emqx.io...';
+  const TOPIC = 'meteo/derbent/Mega-Ingener';
+  const BROKER = 'wss:' + '//broker.emqx.io:8084/mqtt';
+
+  const client = mqtt.connect(BROKER, {
+    clientId: 'web_meteo_' + Math.random().toString(16).substr(2, 8),
+    connectTimeout: 8000
+  });
+
+  client.on('connect', () => {
+    dotEl.className = 'dot online';
+    statusEl.textContent = 'Онлайн • Ожидание пакета (до 10 сек)';
+    client.subscribe(TOPIC);
+  });
+
+  client.on('message', (topic, message) => {
+    try {
+      const d = JSON.parse(message.toString());
+
+      if (d.temp !== undefined && !isNaN(d.temp)) {
+        document.getElementById('temp').textContent = Number(d.temp).toFixed(1);
+      }
+      if (d.hum !== undefined && !isNaN(d.hum)) {
+        document.getElementById('hum').textContent = Number(d.hum).toFixed(1);
+      }
+
+      const n = Number(d.noise) || 0;
+      const noiseEl = document.getElementById('noise');
+      noiseEl.textContent = n + '%';
+
+      const filled = Math.round((n / 100) * 9);
+      let cls = 'green';
+      let desc = 'Тихо';
+      noiseEl.style.color = '#4ade80';
+
+      if (n > 70) {
+        cls = 'red';
+        desc = 'Громко';
+        noiseEl.style.color = '#ef4444';
+      } else if (n > 40) {
+        cls = 'orange';
+        desc = 'Умеренно';
+        noiseEl.style.color = '#f59e0b';
+      }
+
+      document.getElementById('noise-desc').textContent = desc;
+
+      for (let i = 0; i < 9; i++) {
+        blocks[i].className = i < filled ? 'block ' + cls + ' on' : 'block';
+      }
+
+      const now = new Date().toLocaleTimeString('ru-RU');
+      dotEl.className = 'dot online';
+      statusEl.textContent = 'Станция в сети';
+      document.getElementById('updated').textContent = 'Обновлено в ' + now;
+    } catch (e) {
+      setError('Ошибка формата данных');
+    }
+  });
+
+  client.on('error', (err) => {
+    setError('Ошибка сети: ' + (err.message || 'нет доступа к брокеру'));
+  });
+
+  client.on('offline', () => {
+    dotEl.className = 'dot';
+    statusEl.textContent = 'Переподключение к облаку...';
+  });
+}
+
+// Динамическая загрузка библиотеки без длинных ссылок в HTML
+const s = document.createElement('script');
+s.src = 'https:' + '//://unpkg.com';
+s.onload = startMqtt;
+s.onerror = () => {
+  const s2 = document.createElement('script');
+  s2.src = 'https:' + '//cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';
+  s2.onload = startMqtt;
+  s2.onerror = () => setError('Блокировка загрузки CDN в сети');
+  document.head.appendChild(s2);
+};
+document.head.appendChild(s);
 </script>
 </body>
 </html>
